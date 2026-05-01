@@ -10,7 +10,7 @@ def apply_custom_fields():
 		field_map["Patient Encounter"] = [
 			{
 				"fieldname": "team",
-				"label": "Care Team",
+				"label": "Sales Team",
 				"fieldtype": "Link",
 				"options": "Team",
 				"insert_after": "practitioner_name",
