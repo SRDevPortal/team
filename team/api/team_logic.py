@@ -1,7 +1,7 @@
 import frappe
 from frappe import _
 
-from .team_permissions import validate_team_change
+from .team_permissions import can_edit_team, validate_team_change
 
 
 def get_team_for_user(user: str | None) -> str | None:
@@ -38,34 +38,64 @@ def auto_set_team(doc, user: str | None):
 	doc.team = get_team_for_user(user)
 
 
+def get_previous_value(doc, fieldname: str):
+	if doc.is_new():
+		return None
+
+	if hasattr(doc, "has_value_changed") and not doc.has_value_changed(fieldname):
+		return doc.get(fieldname)
+
+	return frappe.db.get_value(doc.doctype, doc.name, fieldname)
+
+
+def has_value_changed(doc, fieldname: str) -> bool:
+	if doc.is_new():
+		return True
+
+	if hasattr(doc, "has_value_changed"):
+		return doc.has_value_changed(fieldname)
+
+	return get_previous_value(doc, fieldname) != getattr(doc, fieldname, None)
+
+
+def apply_system_team(doc, team: str | None, force: bool = False):
+	validate_team_change(doc, allowed_team=team)
+
+	if force or not doc.team or not can_edit_team():
+		doc.team = team
+
+
 def set_team_for_patient_encounter(doc, method=None):
 	if not hasattr(doc, "team"):
 		return
 
-	validate_team_change(doc)
-
-	auto_set_team(doc, frappe.session.user)
+	team = get_team_for_user(doc.owner)
+	apply_system_team(doc, team, force=doc.is_new() or not doc.team)
 
 
 def set_team_for_crm_lead(doc, method=None):
 	if not hasattr(doc, "team"):
 		return
 
-	validate_team_change(doc)
+	team = get_team_for_user(doc.lead_owner) if doc.lead_owner else None
+	lead_owner_changed = has_value_changed(doc, "lead_owner")
 
-	if not doc.lead_owner:
-		return
-
-	auto_set_team(doc, doc.lead_owner)
+	apply_system_team(doc, team, force=lead_owner_changed or not doc.team)
 
 
 def set_team_for_crm_deal(doc, method=None):
 	if not hasattr(doc, "team"):
 		return
 
-	validate_team_change(doc)
+	team = frappe.db.get_value("CRM Lead", doc.lead, "team") if doc.lead else None
+	lead_changed = has_value_changed(doc, "lead")
 
-	if not doc.lead or doc.team:
+	apply_system_team(doc, team, force=lead_changed or not doc.team)
+
+
+def update_linked_deals_team(doc, method=None):
+	if not hasattr(doc, "team") or doc.is_new() or not has_value_changed(doc, "team"):
 		return
 
-	doc.team = frappe.db.get_value("CRM Lead", doc.lead, "team")
+	for deal in frappe.get_all("CRM Deal", filters={"lead": doc.name}, pluck="name"):
+		frappe.db.set_value("CRM Deal", deal, "team", doc.team, update_modified=False)

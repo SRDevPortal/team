@@ -20,6 +20,7 @@ doc_events = {
 	},
 	"CRM Lead": {
 		"before_validate": "team.api.team_logic.set_team_for_crm_lead",
+		"on_update": "team.api.team_logic.update_linked_deals_team",
 	},
 	"CRM Deal": {
 		"before_validate": "team.api.team_logic.set_team_for_crm_deal",
