@@ -10,7 +10,6 @@ after_migrate = "team.install.after_migrate"
 
 doctype_js = {
 	"Patient Encounter": "public/js/team_field_read_only.js",
-	"CRM Lead": "public/js/team_field_read_only.js",
 	"CRM Deal": "public/js/team_field_read_only.js",
 }
 
