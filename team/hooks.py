@@ -5,6 +5,8 @@ app_description = "Team management app"
 app_email = "webdevelopersriaas@gmail.com"
 app_license = "mit"
 
+required_apps = ["crm", "healthcare", "sriaas_role_permissions"]
+
 after_install = "team.install.after_install"
 after_migrate = "team.install.after_migrate"
 
@@ -28,8 +30,6 @@ doc_events = {
 
 # Apps
 # ------------------
-
-# required_apps = []
 
 # Each item in the list will be shown as an app in the apps page
 # add_to_apps_screen = [
