@@ -75,7 +75,7 @@ def _update_layout(doctype: str, layout_type: str, fieldname: str, insert_after:
 
 	try:
 		layout = json.loads(raw_layout)
-	except Exception:
+	except json.JSONDecodeError:
 		return
 
 	if _layout_has_field(layout, fieldname):
