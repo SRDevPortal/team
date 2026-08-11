@@ -5,7 +5,7 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 import frappe
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 
 from team.api.team_logic import (
 	auto_set_team,
@@ -24,7 +24,10 @@ from team.api.team_permissions import (
 from team.setup.role_permissions import TEAM_FIELD_DOCTYPES, apply_role_permission_rules
 
 
-class TestTeam(FrappeTestCase):
+IGNORE_TEST_RECORD_DEPENDENCIES = ["User"]
+
+
+class TestTeam(IntegrationTestCase):
 	def make_user(self):
 		email = f"team-test-{frappe.generate_hash(length=8)}@example.com"
 		frappe.get_doc(
